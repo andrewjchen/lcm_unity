@@ -58,7 +58,7 @@ namespace LCM.LCM
 		/// </summary>
 		/// <param name="lcm">LCM object</param>
 		/// <param name="up">URL parser object</param>
-		public UDPMulticastProvider(LCM lcm, URLParser up)
+				public UDPMulticastProvider(LCM lcm, URLParser up)
 		{
 			this.lcm = lcm;
 			
@@ -70,6 +70,7 @@ namespace LCM.LCM
 			Debug.Log(inetEP);
 
 			sock = new UdpClient();
+			sock.Client.ReceiveBufferSize = 100000000;
 			sock.MulticastLoopback = true;
 			sock.ExclusiveAddressUse = false;
 			sock.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
@@ -78,15 +79,15 @@ namespace LCM.LCM
 			int ttl = up.Get("ttl", DEFAULT_TTL);
 			if (ttl == 0)
 			{
-				Console.Error.WriteLine("LCM: TTL set to zero, traffic will not leave localhost.");
+				Debug.Log("LCM: TTL set to zero, traffic will not leave localhost.");
 			}
 			else if (ttl > 1)
 			{
-				Console.Error.WriteLine("LCM: TTL set to > 1... That's almost never correct!");
+				Debug.Log("LCM: TTL set to > 1... That's almost never correct!");
 			}
 			else
 			{
-				Console.Error.WriteLine("LCM: TTL set to 1.");
+				Debug.Log("LCM: TTL set to 1.");
 			}
 			sock.Ttl = (short) ttl;
 			
@@ -110,7 +111,7 @@ namespace LCM.LCM
 				}
 				catch (System.Exception ex)
 				{
-					Console.Error.WriteLine("ex: " + ex);
+					Debug.Log("ex: " + ex);
 				}
 			}
 		}
@@ -180,7 +181,7 @@ namespace LCM.LCM
 				
 				if (nfragments > 65535)
 				{
-					Console.Error.WriteLine("LC error: too much data for a single message");
+					Debug.Log("LC error: too much data for a single message");
 					return;
 				}
 				
@@ -259,13 +260,14 @@ namespace LCM.LCM
 				{
 					if (sock.Available > 1)
 					{
+						
 						packetData = sock.Receive(ref from);
 						HandlePacket(packetData, from);
 					}
 				}
 				catch (Exception ex)
 				{
-					Console.Error.WriteLine("Ex: " + ex);
+					Debug.Log("Ex: " + ex);
 					continue;
 				}
 				yield return null;
@@ -282,6 +284,7 @@ namespace LCM.LCM
 		
 		private void HandleFragment(byte[] packetData, IPEndPoint from, LCMDataInputStream ins)
 		{
+			Debug.Log("handling fragment");
 			int msgSeqNumber = ins.ReadInt32();
 			int msgSize = ins.ReadInt32() & unchecked((int) 0xffffffff);
 			int fragmentOffset = ins.ReadInt32() & unchecked((int) 0xffffffff);
@@ -294,7 +297,7 @@ namespace LCM.LCM
 			
 			if (ins.Available > 0)
 			{
-				System.Console.Error.WriteLine("Unread data! " + ins.Available);
+				Debug.Log("Unread data! " + ins.Available);
 			}
 			
 			int dataStart = 0;
@@ -340,7 +343,7 @@ namespace LCM.LCM
 			
 			if (fragmentOffset + fragSize > fbuf.data_size)
 			{
-				System.Console.Error.WriteLine("LC: dropping invalid fragment");
+				Debug.Log("LC: dropping invalid fragment");
 				fragBufs.Remove(fbuf.from);
 				return ;
 			}
@@ -366,11 +369,12 @@ namespace LCM.LCM
 			}
 			else if (magic == UDPMulticastProvider.MAGIC_LONG)
 			{
+				Debug.Log ("got long packet fragment");
 				HandleFragment(packetData, from, ins);
 			}
 			else
 			{
-				Console.Error.WriteLine("Bad magic: " + System.Convert.ToString(magic, 16));
+				Debug.Log("Bad magic: " + System.Convert.ToString(magic, 16));
 				return;
 			}
 		}

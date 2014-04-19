@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace LCM.LCM
 {	
@@ -217,6 +218,7 @@ namespace LCM.LCM
 			{
 				foreach (Provider p in providers)
 				{
+					Debug.Log ("subscribing provider...");
 					p.Subscribe(regex);
 				}
 			}
@@ -237,6 +239,7 @@ namespace LCM.LCM
 					}
 				}
 			}
+			Debug.Log ("done subscribing");
 		}
 		
 		/// <summary>

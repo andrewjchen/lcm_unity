@@ -131,6 +131,7 @@ namespace LCM.LCM
 		/// <param name="channel">channel name</param>
 		public virtual void Subscribe(string channel)
 		{
+			UnityEngine.Debug.Log("TCP subscribe");
 			lock (this)
 			{
 				byte[] channelBytes;

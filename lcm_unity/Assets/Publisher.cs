@@ -19,6 +19,7 @@ public class Publisher : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		Debug.Log ("running");
 		t++;
 		if (t > 60){
 			exlcm.example_t msg = new exlcm.example_t();

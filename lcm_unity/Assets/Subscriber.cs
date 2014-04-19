@@ -25,10 +25,61 @@ public class Subscriber : MonoBehaviour {
 
 	internal class SimpleSubscriber : LCM.LCM.LCMSubscriber
 	{
+		int last_number;
+		public void MessageReceived(LCM.LCM.LCM lcm, string channel, LCM.LCM.LCMDataInputStream dins)
+        {
+			
+            if (channel == "PiEMOS" + "1" + "/Config") {
+							Debug.Log ("Config RECEIVED");
+                /*RadioManager.instance.receivedFromRobot = false;
+                FieldManager.CompetitionMode = true;
+                CommStatus.FieldRX = true;*/
+                //fieldrx is reset to false in CommStatus, thus the RX light only flashes
+                forseti2.ConfigData msg = new forseti2.ConfigData(dins);
+                //Debug.Log("Received config from field control " + RadioManager.instance.numConfig);
+                /*RadioManager.instance.numConfig++;
+                SerializableManager.Deserialize(msg.ConfigFile);
+                FieldManager.IsBlue = msg.IsBlueAlliance;
+                FieldManager.TeamName = msg.TeamName;
+                FieldManager.TeamNumber = msg.TeamNumber;
+                FieldObjectManager.GetInstance().ParseReceivedObjectFile(msg.FieldObjects);
+                Debug.Log("Radio address: " + RadioManager.instance.dest16str);
+                FeedbackManager.windowRect = new Rect(0, 128, 200, 400);
+                ConsoleWindow.windowRect = new Rect(0,0,400,200);*/
+            } else if (channel == "score/delta") {
+                /*FieldManager.CompetitionMode = true;
+                CommStatus.FieldRX = true;*/
+				
+                forseti2.score_delta msgaa = new forseti2.score_delta(dins);
+				int number = msgaa.header.seq;
+				if (number != (last_number + 1)) {
+					
+							Debug.Log ("NOT IN SEQUENCE" + number);
+				}
+				else if ( number % 100 == 0){
+					Debug.Log ("in sequence" + Time.time);	
+				}
+				last_number = number;
+			}
+		
+		else if (channel == "piemos" + "1" + "/cmd") {
+                /*FieldManager.CompetitionMode = true;
+                CommStatus.FieldRX = true;*/
+                forseti2.piemos_cmd msg = new forseti2.piemos_cmd(dins);
+				
+							//Debug.Log ("COMMAND RECEIVED " + msg.header.seq);
+				
+				/*
+                FieldManager.IsBlue = msg.is_blue;
+                FieldManager.AutonomousEnabled = msg.auton;
+                FieldManager.FieldTime = (byte)msg.game_time;
+                FieldManager.RobotEnabled = msg.enabled;*/
+            }
+        }
 
 		private int seq = 0;
 
-		public void MessageReceived(LCM.LCM.LCM lcm, string channel, LCM.LCM.LCMDataInputStream dins)
+		public void __MessageReceived(LCM.LCM.LCM lcm, string channel, LCM.LCM.LCMDataInputStream dins)
 		{
 			Debug.Log ("RECV: " + channel);
 			if (channel == "EXAMPLE")
@@ -79,7 +130,9 @@ public class Subscriber : MonoBehaviour {
 		Debug.Log ("Listener started.");
 		myLCM = new LCM.LCM.LCM();
 		
+		Debug.Log("subscribing");
 		myLCM.SubscribeAll(new SimpleSubscriber());
+		//myLCM.Subscribe("score/delta", new SimpleSubscriber());
 		running = true;
 		while (running){
 			yield return null;
