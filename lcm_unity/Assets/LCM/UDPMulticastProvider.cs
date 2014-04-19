@@ -75,6 +75,7 @@ namespace LCM.LCM
 			sock.ExclusiveAddressUse = false;
 			sock.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
 			sock.Client.Bind(new IPEndPoint(IPAddress.Any, inetPort));
+//			sock.Client.Blocking = false;
 			
 			int ttl = up.Get("ttl", DEFAULT_TTL);
 			if (ttl == 0)
@@ -258,9 +259,8 @@ namespace LCM.LCM
 			{
 				try
 				{
-					if (sock.Available > 1)
+					while (sock.Available > 1)
 					{
-						
 						packetData = sock.Receive(ref from);
 						HandlePacket(packetData, from);
 					}
@@ -284,7 +284,7 @@ namespace LCM.LCM
 		
 		private void HandleFragment(byte[] packetData, IPEndPoint from, LCMDataInputStream ins)
 		{
-			Debug.Log("handling fragment");
+//			Debug.Log("handling fragment");
 			int msgSeqNumber = ins.ReadInt32();
 			int msgSize = ins.ReadInt32() & unchecked((int) 0xffffffff);
 			int fragmentOffset = ins.ReadInt32() & unchecked((int) 0xffffffff);
@@ -369,7 +369,7 @@ namespace LCM.LCM
 			}
 			else if (magic == UDPMulticastProvider.MAGIC_LONG)
 			{
-				Debug.Log ("got long packet fragment");
+//				Debug.Log ("got long packet fragment");
 				HandleFragment(packetData, from, ins);
 			}
 			else

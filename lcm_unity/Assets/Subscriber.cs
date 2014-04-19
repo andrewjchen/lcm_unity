@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 public class Subscriber : MonoBehaviour {
+	
+	public Transform cube;
 
 	// Use this for initialization
 	void Start () {
@@ -14,7 +16,7 @@ public class Subscriber : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		cube.Rotate(0,45*Time.deltaTime,0);
 	}
 
 	void OnApplicationQuit() {
@@ -29,8 +31,8 @@ public class Subscriber : MonoBehaviour {
 		public void MessageReceived(LCM.LCM.LCM lcm, string channel, LCM.LCM.LCMDataInputStream dins)
         {
 			
-            if (channel == "PiEMOS" + "1" + "/Config") {
-							Debug.Log ("Config RECEIVED");
+            if (channel == "PiEMOS1/Config" ||channel == "PiEMOS2/Config" ||channel == "PiEMOS3/Config"||channel == "PiEMOS4/Config" ||channel == "PiEMOS0/Config") {
+				Debug.Log ("Config RECEIVED, channel=" + channel);
                 /*RadioManager.instance.receivedFromRobot = false;
                 FieldManager.CompetitionMode = true;
                 CommStatus.FieldRX = true;*/
@@ -53,8 +55,7 @@ public class Subscriber : MonoBehaviour {
                 forseti2.score_delta msgaa = new forseti2.score_delta(dins);
 				int number = msgaa.header.seq;
 				if (number != (last_number + 1)) {
-					
-							Debug.Log ("NOT IN SEQUENCE" + number);
+					Debug.Log ("NOT IN SEQUENCE" + number);
 				}
 				else if ( number % 100 == 0){
 					Debug.Log ("in sequence" + Time.time);	
@@ -128,7 +129,7 @@ public class Subscriber : MonoBehaviour {
 	public IEnumerator Listener()
 	{
 		Debug.Log ("Listener started.");
-		myLCM = new LCM.LCM.LCM();
+		myLCM = new LCM.LCM.LCM("udpm://239.255.76.67:7667?ttl=1");
 		
 		Debug.Log("subscribing");
 		myLCM.SubscribeAll(new SimpleSubscriber());
